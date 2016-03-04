@@ -1,0 +1,160 @@
+###############################################################################
+# specification.txt:
+# Here is the specification of the AxiLite to SPI Bus bridge.
+# 
+# Created by: AQAEFR
+# 		date: 2016.04.03
+###############################################################################
+
+
+###############################################################################
+# Introduction:
+###############################################################################
+
+The system looks like the following:
+
+         /                                         \
+     ---+-----------+-------------------------------+----
+       X            |   AXI_Lite Bus                 X
+     ---+--------+--+-------------------------------+----
+         \       |  |                              /
+                 |  |
+            +----+--+--------------+
+            |   <<Bus Bridge>>     |
+            |                      |
+            |                      |      SPI Interface
+            |                     ..............
+            |                      |   (MOSI, MISO, CLK, Select)
+            |                      |
+            +----------------------+
+
+We have to implement the BusBridge, and a simulation environment (aka.
+testbench) to verify the behavioral of the module. The following
+sections describe the bridge, and the testbench.
+
+
+###############################################################################
+# 1. The Bridge
+###############################################################################
+
+#
+# A. Overwiev:
+#
+
+The bridge contains 3 module:
+	1. An AXI interface
+	2. A register file	
+	3. And an SPI controller.									  
+	
+      /                                                                   \
+  ---+-----------+---------------------------------------------------------+----
+    X            |   AXI_Lite Bus                                           X
+  ---+--------+--+---------------------------------------------------------+-----
+      \       |  |                                                        /
+              |  |
+         +----+--+------------------------------------------------------------+
+         |    |  |                                        <<Bus Bridge>>      |
+         |    |  |                                                            |
+         |  +-+--+------------+    +---------------+   +-------------------+  |
+         |  | Axi Interface   |    | Register File |   |  SPI Controller   |  |
+         |  |                 |    |               |   |                   |  |      SPI Interface
+         |  |                 |    | +-----------+ |   |                   ................
+         |  |                 x....x +-----------+ x...x                   |  |   (MOSI, MISO, CLK, Select)
+         |  |                 |    | +-----------+ |   |                   |  |
+         |  |                 |    | +-----------+ |   |                   |  |
+         |  +-----------------+    | +-----------+ |   |                   |  |
+         |                         |               |   +-------------------+  |
+         |                         |               |                          |
+         |                         +---------------+                          |
+         |                                                                    |
+         +--------------------------------------------------------------------+
+ 
+The AXI interface decode/code the address and data from/to the AXI bus, and
+read/write datas from/to the registers.
+The register file contains all of the register. Ex.: Status register, Control
+register, Data register towards SPI, Data register from SPI...
+The SPI controller start an SPI transaction when it proggrammed to it. It
+listens to the control register, and starts SPI communication when it needed,
+and write the answer back to the register file. It can request interrupts (if it
+proggrammed) at the and of transaction, or at error, etc.
+
+#
+# B. The AXI interface:
+#
+To Be DONE...
+
+#
+# C. The Register File:
+#
+To Be DONE...
+
+#
+# D. The SPI Controller:
+#
+To Be DONE...
+
+
+###############################################################################
+# 1. The testbench
+###############################################################################
+
+#
+# A. Overwiev:
+#
+
+The simplest way to implement the testbench is to use an eeprom behacioral
+model, and an AXI Master. So the testbench contains the followings:
+	1. The bridge (The DUT)
+	2. An SPI EEPROM simulation model	
+	3. AXI Lite Master			
+  
+  
+  OoooooooooooooO
+  o  AXI_Lite   o    /                                         \
+  o  master     o---+-----------+-------------------------------+----
+  o             o  X            |   AXI_Lite Bus                 X
+  o  simulation o---+--------+--+-------------------------------+----
+  o  model      o    \       |  |                              /
+  o             o            |  |
+  o             o       +----+--+--------------+
+  OoooooooooooooO       |   <<Bus Bridge>>     |                  OooooooooooooooO
+                        |                      |                  o  SPI EEPROM  o
+                        |                      |  SPI Interface   o              o
+                        |                     .....................  simulation  o
+                        |                      |  (MOSI, MISO,    o  behavioral  o
+                        |                      |   CLK, Select)   o  model       o
+                        +----------------------+                  o              o
+                                                                  o              o
+                                                                  o              o
+                                                                  OooooooooooooooO
+
+#
+# A. Bus Bridge
+#
+This is the DUT from the previous section.
+
+#
+# B. SPI EEPROM simulation model
+#
+Should be downloaded form the the web. (ST, or atmel...)
+
+#
+# C. AXI Lite Master
+#
+This is the main part. This must implement an AXI master interface, and should
+initiate AXI transaction. For test cases see its section.
+
+#
+# D. Test cases
+#
+To Be DONE...
+ 
+
+Abbreviations / Keywords:
+	Bridge  --  A module which convert a bus protocol to another bus protocol.
+	SPI  --  Serial Peripherial Interface
+	MOSI  --  Master Output Slave Input
+	MISO  --  Master Input Slave Output
+	CLK  --  Clock
+	DUT  --  Device Under Test
+	
