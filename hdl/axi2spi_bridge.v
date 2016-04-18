@@ -25,7 +25,7 @@ module axi2spi_bridge(
     input   [31:0]      AXI_wdata,     // write data
     output  [0:0]       AXI_wready,    // write ready
     input   [3:0]       AXI_wstrb,     // ??
-    input   [0:0]       AXI_wvalid     // write valid
+    input   [0:0]       AXI_wvalid,     // write valid
 //IRQ to AXI master
     output  IRQ,
 
