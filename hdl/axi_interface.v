@@ -11,12 +11,12 @@ module axi_interface(
 //CLK
     input   FCLK_CLK0,
 //RST
-    input   RST_N,
+    // input   RST_N,
     
 //Signals towards register interface:
-    output  wire [31:0] o_data_to_registers,
-    output  wire        o_wr_controll_reg,  // Offset: 0x00     
-    output  wire        o_wr_data_reg,      // Offset: 0x08
+    output  reg [31:0] o_data_to_registers,
+    output  reg        o_wr_controll_reg,  // Offset: 0x00     
+    output  reg        o_wr_data_reg,      // Offset: 0x08
     
     input   wire [31:0] i_controll_reg,
     input   wire [31:0] i_status_reg,
@@ -52,7 +52,9 @@ wire clk;
 assign clk = FCLK_CLK0;
 
        
-assign o_data_to_registers <= AXI_wdata[31:0];
+always @(*) begin
+    o_data_to_registers = AXI_wdata[31:0];
+end
 /// AXI interface
 
 // WRITE  --  this block control the enable of registers to write them from AXI
@@ -62,7 +64,7 @@ always @(*) begin
     o_wr_controll_reg <= '0;
     if (AXI_awvalid[0] & AXI_wvalid[0]) begin
         if(AXI_awaddr[15:2] == `ADDR_CONTROL_REG) // BASE + 0x00
-            o_wr_controll_reg <= '1
+            o_wr_controll_reg <= '1;
         if(AXI_awaddr[15:2] == `ADDR_DATA_REG) // BASE + 0x08
             o_wr_data_reg <= '1;
     end
@@ -73,19 +75,15 @@ assign AXI_awready[0] = AXI_awvalid[0] & AXI_wvalid[0];   // AXI_awvalid;
 assign AXI_wready[0]  = AXI_awvalid[0] & AXI_wvalid[0];   // AXI_awvalid;
 assign AXI_bvalid[0]  = AXI_awvalid[0] & AXI_wvalid[0]; 	// 1'b1;
 
-assign AXI_bresp[0]   = 'h0;
+assign AXI_bresp = 2'h0;
 
-
-// READ  --  this module gives the DATA
-always @(posedge clk) begin
-    AXI_rdata <= data_from_registers;
-end
 
 // READ  --  this block drive the AXI when the AXI bus-master reads a data.
 always @(posedge clk) begin
+    AXI_rdata <= '0;
     if (AXI_arvalid[0])
         if(AXI_araddr[15:2] == `ADDR_CONTROL_REG) // BASE + 0x00
-            AXI_rdata <= i_controll_reg,
+            AXI_rdata <= i_controll_reg;
         if(AXI_araddr[15:2] ==  `ADDR_STATUS_REG) // BASE + 0x04
             AXI_rdata <= i_status_reg;
         if(AXI_araddr[15:2] == `ADDR_DATA_REG) // BASE + 0x08
@@ -99,7 +97,7 @@ end
 assign AXI_arready[0] = AXI_arvalid[0];
 
 
-assign AXI_rresp[0]   = 'h0;
+assign AXI_rresp = 2'h0;
 
 
 endmodule

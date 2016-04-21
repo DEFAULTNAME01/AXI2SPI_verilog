@@ -20,6 +20,10 @@
 //////////////////////////////////////////////
 `define DATA_BITS           8
 
+`define M2Kb
+`define Vcc 3.3
+`define R
+
 `ifdef "M1Kb"
    `define VALID_PRT           1               //Valid Part
    `define MEM_SIZE            128             //1K bits = 128 bytes
@@ -30,7 +34,7 @@
    `define PAGE_OFFSET_BITS    4               
 `elsif "M2Kb"
    `define VALID_PRT           1               //Valid Part
-   `define MEM_SIZE            256             //2K bits = 128 bytes
+   `define MEM_SIZE            256             //2K bits = 256 bytes
    `define MEM_ADDR_BITS       8               //memory address bits
    `define PAGE_ADDR_BITS      4               //page address bits
    `define PAGES               16              //16 pages

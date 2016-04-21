@@ -277,13 +277,13 @@ end
 //during HOLD Condition period, Serial clock is not be care
 always@(posedge hold_condition)
 begin
-  Q = #(M95XXX_SIM.M95XXX_Macro_mux.tHLQZ) 1'bz;
+  Q = #(simulation_top.M95XXX_Macro_mux_inst.tHLQZ) 1'bz;
 end
 
 //---------------------------
 always@(negedge hold_condition)
 begin
-  Q = #(M95XXX_SIM.M95XXX_Macro_mux.tHHQV) dout;
+  Q = #(simulation_top.M95XXX_Macro_mux_inst.tHHQV) dout;
 end
 
 //---------------------------
@@ -294,7 +294,7 @@ end
 
 always@(posedge S) 
 begin
-  #(M95XXX_SIM.M95XXX_Macro_mux.tSHQZ); 
+  #(simulation_top.M95XXX_Macro_mux_inst.tSHQZ); 
   Q = 1'bz;
   dout = 1'bz;
 end
@@ -372,7 +372,7 @@ begin
     operation = 4'b0000;
     instruction = 4'b0000;
     $display("%t: NOTE: Read status register operation is finished.\n",$realtime);
-    #(M95XXX_SIM.M95XXX_Macro_mux.tSHQZ);
+    #(simulation_top.M95XXX_Macro_mux_inst.tSHQZ);
     rds_inprogress = 1'b0;
   end
 end
@@ -492,7 +492,7 @@ begin
     operation = 4'b0000;
     instruction = 4'b0000;
     $display("%t: NOTE: Read status register operation is finished.\n",$realtime);
-    #(M95XXX_SIM.M95XXX_Macro_mux.tSHQZ);
+    #(simulation_top.M95XXX_Macro_mux_inst.tSHQZ);
     rds_inprogress = 1'b0;
   end
 */
@@ -508,7 +508,7 @@ begin
         $display("%t: WARNING: The Write Status Register(WRSR) instruction is not executed because Hardware Write Protected Mode(HPM) is entered!\n",$realtime);
         //$display("%t: WARNING: Status Register is Hardware Write Protected, the values in BP1,0 can't be Changed!\n",$realtime);
         //status_reg[0] = 1'b1;           //WIP is 1 during this cycle
-        //#(M95XXX_SIM.M95XXX_Macro_mux.tW);                         //Write time
+        //#(simulation_top.M95XXX_Macro_mux_inst.tW);                         //Write time
         //status_reg[7] = sr_latch[7];    //SRWD
         //$display("%t: NOTE: Write Status Register Instruction finish!\n",$realtime);
         //status_reg[0] = 1'b0;           //WIP is reset when write cycle is completed.
@@ -517,7 +517,7 @@ begin
       else begin
         $display("%t: NOTE: Begin to Write Status Register!",$realtime);
         status_reg[0] = 1'b1;           //WIP is 1 during this cycle
-        #(M95XXX_SIM.M95XXX_Macro_mux.tW);                         //Write time
+        #(simulation_top.M95XXX_Macro_mux_inst.tW);                         //Write time
         status_reg[3:2]= sr_latch[3:2]; //BP1,BP0
         status_reg[7] = sr_latch[7];    //SRWD
         $display("%t: NOTE: Write Status Register successfully!",$realtime);
@@ -535,7 +535,7 @@ begin
   begin
     operation = 4'b0000;
     $display("%t: NOTE: Read data bytes operation is finished.\n",$realtime);
-    #(M95XXX_SIM.M95XXX_Macro_mux.tSHQZ);
+    #(simulation_top.M95XXX_Macro_mux_inst.tSHQZ);
   end
   //----------------------------
   if(operation == READ_ID_DATA_OUT)
@@ -545,7 +545,7 @@ begin
     if(!memory_address[10]) $display("%t: NOTE: Read ID data bytes operation is finished.\n",$realtime);
     else $display("%t: NOTE: Read Lock Status data bytes operation is finished.\n",$realtime);
     
-    #(M95XXX_SIM.M95XXX_Macro_mux.tSHQZ);
+    #(simulation_top.M95XXX_Macro_mux_inst.tSHQZ);
   end
  
   //----------------------------Write LOCK ID
@@ -564,7 +564,7 @@ begin
         if(lock_latch[1])
         begin
           pageidlocked = 1'b1; 
-          #(M95XXX_SIM.M95XXX_Macro_mux.tW);                         //Write Time
+          #(simulation_top.M95XXX_Macro_mux_inst.tW);                         //Write Time
           $display("%t: NOTE: LOCK ID accepted and the Identification Memory is Now Permanently locked, operation is finished.\n",$realtime);
         end
         else
@@ -598,7 +598,7 @@ begin
         if(write_id_data_end) $display("%t: NOTE: ID Page: Program Cycle has started!",$realtime); 
         else  $display("%t: NOTE: Page[%d] Program Cycle has started!",$realtime,page_address);
         status_reg[0] = 1'b1;           //WIP is 1 during this cycle
-        #(M95XXX_SIM.M95XXX_Macro_mux.tW);                         //Write Time
+        #(simulation_top.M95XXX_Macro_mux_inst.tW);                         //Write Time
         if(start_address == end_address)  //Definite Page wrap around
         begin : loop1
           for(idx=1;idx<=`PAGE_SIZE;idx=idx+1)
@@ -898,7 +898,7 @@ begin
       else memory_address[`MEM_ADDR_BITS-1:0] = memory_address[`MEM_ADDR_BITS-1:0] + {{`MEM_ADDR_BITS-1 {1'b0}},1'b1};// `MEM_ADDR_BITS'h001;
       i = 8;
     end
-    #(M95XXX_SIM.M95XXX_Macro_mux.tCLQV);                  //clock low to Output Valid
+    #(simulation_top.M95XXX_Macro_mux_inst.tCLQV);                  //clock low to Output Valid
     data_out_buf = memory[memory_address[`MEM_ADDR_BITS-1:0]];
     dout = data_out_buf[i-1];
     i = i-1;
@@ -911,7 +911,7 @@ begin
     begin
       if(i==0) i = 8;
 
-      #(M95XXX_SIM.M95XXX_Macro_mux.tCLQV);                  //clock low to Output Valid
+      #(simulation_top.M95XXX_Macro_mux_inst.tCLQV);                  //clock low to Output Valid
       data_out_buf = {7'b0000000,pageidlocked};
       dout = data_out_buf[i-1];
       i = i-1;
@@ -931,7 +931,7 @@ begin
         else memory_address[`PAGE_OFFSET_BITS-1:0] = memory_address[`PAGE_OFFSET_BITS-1:0] + {{`PAGE_OFFSET_BITS-1 {1'b0}},1'b1};
         i = 8;
       end
-      #(M95XXX_SIM.M95XXX_Macro_mux.tCLQV);                  //clock low to Output Valid
+      #(simulation_top.M95XXX_Macro_mux_inst.tCLQV);                  //clock low to Output Valid
       data_out_buf = memory_id[memory_address[`PAGE_OFFSET_BITS-1:0]];
       dout = data_out_buf[i-1];
       i = i-1;
@@ -966,7 +966,7 @@ begin
   begin
     operation = READ_SR_OUT;
     if(i==0)  i = 8;
-    #(M95XXX_SIM.M95XXX_Macro_mux.tCLQV);                  //Clock low to Output Valid
+    #(simulation_top.M95XXX_Macro_mux_inst.tCLQV);                  //Clock low to Output Valid
     if (instruction_byte == 1'b0) 
        dout = status_reg[i-1];
     else
@@ -1117,7 +1117,7 @@ begin
   if(r_C == 1'b1)
   begin
     tCHSH = t_rS - t_rC;
-    if(tCHSH < M95XXX_SIM.M95XXX_Macro_mux.tCHSH) $display("%t: ERROR: /S Active Hold Time(tCHSH) violated.\n",$realtime);
+    if(tCHSH < simulation_top.M95XXX_Macro_mux_inst.tCHSH) $display("%t: ERROR: /S Active Hold Time(tCHSH) violated.\n",$realtime);
   end
 end
 //================================
@@ -1127,12 +1127,12 @@ begin
   if(r_S == 1'b1)
   begin               //check /S deselect time
     tSHSL = t_fS - t_rS;
-    if(tSHSL < M95XXX_SIM.M95XXX_Macro_mux.tSHSL) $display("%t: ERROR: /S Deselect Time(tSHSL) violated.\n",$realtime);
+    if(tSHSL < simulation_top.M95XXX_Macro_mux_inst.tSHSL) $display("%t: ERROR: /S Deselect Time(tSHSL) violated.\n",$realtime);
   end
   if(r_C == 1'b1)
   begin               //check /S not active hold time (relative to clk_in)
     tCHSL = t_fS - t_rC;
-    if(tCHSL < M95XXX_SIM.M95XXX_Macro_mux.tCHSL) $display("%t: ERROR: /S Not Active Hold Time(tCHSL) violated.\n",$realtime);
+    if(tCHSL < simulation_top.M95XXX_Macro_mux_inst.tCHSL) $display("%t: ERROR: /S Not Active Hold Time(tCHSL) violated.\n",$realtime);
   end
 end
 //================================
@@ -1144,38 +1144,38 @@ begin
     if(r_C == 1'b1)
     begin
       Tc = t_rC - t_rC1;
-      if(Tc < M95XXX_SIM.M95XXX_Macro_mux.tC) $display("%t: ERROR: Clock Frequency(fC) violated, fC > %0d MHz. Tc=%d TC=%d\n",$realtime,M95XXX_SIM.M95XXX_Macro_mux.fC,Tc,M95XXX_SIM.M95XXX_Macro_mux.tC);
+      if(Tc < simulation_top.M95XXX_Macro_mux_inst.tC) $display("%t: ERROR: Clock Frequency(fC) violated, fC > %0d MHz. Tc=%d TC=%d\n",$realtime,simulation_top.M95XXX_Macro_mux_inst.fC,Tc,simulation_top.M95XXX_Macro_mux_inst.tC);
     end
     r_C = 1'b1;
     if(f_S == 1'b1)
     begin
       tSLCH = t_rC - t_fS;
-      if(tSLCH < M95XXX_SIM.M95XXX_Macro_mux.tSLCH) $display("%t: ERROR: /S Active Setup Time(tSLCH) violated.\n",$realtime);
+      if(tSLCH < simulation_top.M95XXX_Macro_mux_inst.tSLCH) $display("%t: ERROR: /S Active Setup Time(tSLCH) violated.\n",$realtime);
     end
     if(r_S == 1'b1)
     begin
       tSHCH = t_rC - t_rS;
-      if(tSHCH < M95XXX_SIM.M95XXX_Macro_mux.tSHCH) $display("%t: ERROR: /S Not Active Setup Time(tSHCH) violated.\n",$realtime);
+      if(tSHCH < simulation_top.M95XXX_Macro_mux_inst.tSHCH) $display("%t: ERROR: /S Not Active Setup Time(tSHCH) violated.\n",$realtime);
     end
     if(f_C == 1'b1)
     begin
       tCL = t_rC - t_fC;
-      if(tCL < M95XXX_SIM.M95XXX_Macro_mux.tCL) $display("%t: ERROR: Clock Low Time(tCL) violated.\n",$realtime);
+      if(tCL < simulation_top.M95XXX_Macro_mux_inst.tCL) $display("%t: ERROR: Clock Low Time(tCL) violated.\n",$realtime);
     end
     if(din_change == 1'b1)
     begin
       tDVCH = t_rC - t_d;
-      if(tDVCH < M95XXX_SIM.M95XXX_Macro_mux.tDVCH) $display("%t: ERROR: Data In Setup Time(tDVCH) violated.\n",$realtime);
+      if(tDVCH < simulation_top.M95XXX_Macro_mux_inst.tDVCH) $display("%t: ERROR: Data In Setup Time(tDVCH) violated.\n",$realtime);
     end
     if(f_H == 1'b1)
     begin
       tHLCH = t_rC - t_fH;
-      if(tHLCH < M95XXX_SIM.M95XXX_Macro_mux.tHLCH) $display("%t: ERROR: Clock Low Hold Time After HOLD Active(tHLCH) violated.\n",$realtime);
+      if(tHLCH < simulation_top.M95XXX_Macro_mux_inst.tHLCH) $display("%t: ERROR: Clock Low Hold Time After HOLD Active(tHLCH) violated.\n",$realtime);
     end
     if(r_H == 1'b1)
     begin
       tHHCH = t_rC - t_rH;
-      if(tHHCH < M95XXX_SIM.M95XXX_Macro_mux.tHHCH) $display("%t: ERROR: Clock Low Hold Time After HOLD Not Active(tHHCH) violated.\n",$realtime);
+      if(tHHCH < simulation_top.M95XXX_Macro_mux_inst.tHHCH) $display("%t: ERROR: Clock Low Hold Time After HOLD Not Active(tHHCH) violated.\n",$realtime);
     end
     t_rC1 = t_rC;
   end
@@ -1186,7 +1186,7 @@ begin
     if(r_C == 1'b1)
     begin
       tCH = t_fC - t_rC;
-      if(tCH < M95XXX_SIM.M95XXX_Macro_mux.tCH) $display("%t: ERROR: Clock High Time(tCH) violated.\n",$realtime);
+      if(tCH < simulation_top.M95XXX_Macro_mux_inst.tCH) $display("%t: ERROR: Clock High Time(tCH) violated.\n",$realtime);
     end
   end
 end
@@ -1198,7 +1198,7 @@ begin
   if(f_C == 1'b1)
   begin
     tCLHH = t_rH - t_fC;
-    if(tCLHH < M95XXX_SIM.M95XXX_Macro_mux.tCLHH) $display("%t: ERROR: Clock High Set-Up Time Before HOLD Not Active(tCLHH) violated.\n",$realtime);
+    if(tCLHH < simulation_top.M95XXX_Macro_mux_inst.tCLHH) $display("%t: ERROR: Clock High Set-Up Time Before HOLD Not Active(tCLHH) violated.\n",$realtime);
   end
 end
 //================================
@@ -1209,7 +1209,7 @@ begin
   if(f_C == 1'b1)
   begin
     tCLHL = t_fH - t_fC;
-    if(tCLHL < M95XXX_SIM.M95XXX_Macro_mux.tCLHL) $display("%t: ERROR: Clock High Set-Up Time Before HOLD Active(tCLHL) violated.\n",$realtime);
+    if(tCLHL < simulation_top.M95XXX_Macro_mux_inst.tCLHL) $display("%t: ERROR: Clock High Set-Up Time Before HOLD Active(tCLHL) violated.\n",$realtime);
   end
 end
 //================================
@@ -1220,7 +1220,7 @@ begin
   if(r_C == 1'b1)
   begin
     tCHDX = t_d - t_rC;
-    if(tCHDX < M95XXX_SIM.M95XXX_Macro_mux.tCHDX) $display("%t: ERROR: Data In Hold Time(tCHDX) violated.\n",$realtime);
+    if(tCHDX < simulation_top.M95XXX_Macro_mux_inst.tCHDX) $display("%t: ERROR: Data In Hold Time(tCHDX) violated.\n",$realtime);
   end
 end
 //================================

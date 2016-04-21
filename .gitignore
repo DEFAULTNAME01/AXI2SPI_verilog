@@ -1,0 +1,3 @@
+rundir/*
+!rundir/mentor_compile.tcl
+!rundir/wave.do

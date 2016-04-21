@@ -31,7 +31,7 @@ initial begin
       if (`M32Kb_var || `M64Kb_var ||`M128Kb_var || `M256Kb_var || `M512Kb_var || `M1Mb_var)
          table_5MHz_2;
       else 
-         $display("No AC Table exists for this Vcc selection = %1fV", `Vcc);
+         $display("No 1 AC Table exists for this Vcc selection = %1fV", `Vcc);
     else if (`Vcc >= 2.5 && `Vcc < 4.5) 
          table_10MHz_1;
     else if (`Vcc >= 4.5) 
@@ -40,7 +40,7 @@ initial begin
       else if (`M512Kb_var || `M1Mb_var)
          table_16MHz_1;
       else
-         $display("No AC Table exists for this Vcc selection = %1fV", `Vcc);
+         $display("No 2 AC Table exists for this Vcc selection = %1fV", `Vcc);
  end
  else begin
    if (`F_var && (`Vcc < 1.8 && `Vcc >= 1.7)) begin
@@ -51,7 +51,7 @@ initial begin
       else if (`M1Mb_var)
          table_2MHz_1;
       else
-         $display("No AC Table exists for this Vcc selection = %1fV", `Vcc);
+         $display("No 3 AC Table exists for this Vcc selection = %1fV", `Vcc);
    end
    else if (`Vcc < 2.5 && `Vcc >= 1.8) begin
       if (`F_var || `R_var) begin
@@ -62,10 +62,10 @@ initial begin
          else if (`M1Mb_var)
             table_5MHz_1;
          else
-            $display("No AC Table exists for this Vcc selection = %1fV", `Vcc);
+            $display("No 4 AC Table exists for this Vcc selection = %1fV", `Vcc);
       end
       else
-         $display("No AC Table exists for this Vcc selection = %1fV", `Vcc);
+         $display("No 5 AC Table exists for this Vcc selection = %1fV", `Vcc);
    end
    else if (`Vcc >= 2.5) begin
       if (`F_var || `R_var || `W_var) begin
@@ -78,13 +78,13 @@ initial begin
          else if (`M2Mb_var)
             table_5MHz_2;
          else
-            $display("No AC Table exists for this Vcc selection = %1fV", `Vcc);
+            $display("No 6 AC Table exists for this Vcc selection = %1fV", `Vcc);
       end
       else
-         $display("No AC Table exists for this Vcc selection = %1fV", `Vcc);
+         $display("No 7 AC Table exists for this Vcc selection = %1fV", `Vcc);
    end
    else begin
-         $display("No AC Table exists for this Vcc selection = %1fV", `Vcc);
+         $display("No 8 AC Table exists for this Vcc selection = %1fV", `Vcc);
    end
  end
 
@@ -115,7 +115,7 @@ begin
         tCLQX     =          0    ;
         tHHQV     =          200  ;
         tHLQZ     =          200  ;
-        tW        =          5e6  ;             //Write Time:5ms
+        tW        =          5e3  ;             //Write Time:5us replaced by aqaefr
 end
 endtask
 
@@ -167,7 +167,7 @@ begin
         tCLQX     =          0    ;
         tHHQV     =          80   ;
         tHLQZ     =          80   ;
-        tW        =          5e6  ;             //Write Time:5ms
+        tW        =          5e3  ;             //Write Time:5us replaced by aqaefr
 end
 endtask
 
@@ -227,7 +227,7 @@ begin
         tCLQX     =          0    ;
         tHHQV     =          50   ;
         tHLQZ     =          100  ;
-        tW        =          5e6  ;             //Write Time:5ms
+        tW        =          5e3  ;             //Write Time:5us replaced by aqaefr
 end
 endtask
 
@@ -253,7 +253,7 @@ begin
         tCLQX     =          0    ;
         tHHQV     =          50   ;
         tHLQZ     =          100  ;
-        tW        =          5e6  ;             //Write Time:5ms
+        tW        =          5e3  ;             //Write Time:5us replaced by aqaefr
 end
 endtask
 
@@ -310,7 +310,7 @@ begin
         tCLQX     =          0    ;
         tHHQV     =          25   ;
         tHLQZ     =          35   ;
-        tW        =          5e6  ;             //Write Time:5ms
+        tW        =          5e3  ;             //Write Time:5us replaced by aqaefr
 end
 endtask
 
@@ -336,7 +336,7 @@ begin
         tCLQX     =          0    ;
         tHHQV     =          40   ;
         tHLQZ     =          40   ;
-        tW        =          5e6  ;             //Write Time:5ms 	
+        tW        =          5e3  ;             //Write Time:5us replaced by aqaefr 	
 end
 endtask
 

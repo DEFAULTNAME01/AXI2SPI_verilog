@@ -1,9 +1,12 @@
+
+`timescale 1ns/1ns
+
 /******************************************************************************
  *
 ******************************************************************************/
 
 
-module simulation_top ()
+module simulation_top ();
 
 /**
  * Signal definitions to connect the DUT.
@@ -14,23 +17,23 @@ reg spi_select;
 reg sys_clk, rst_n;
 reg   [31:0]      q_AXI_araddr;    // read address address (data)
 reg   [2:0]       q_AXI_arprot;    // ???
-wire  [0:0]       w_AXI_arready;   // read address ready
-reg   [0:0]       q_AXI_arvalid;   // read address valid
+wire              w_AXI_arready;   // read address ready
+reg               q_AXI_arvalid;   // read address valid
 reg   [31:0]      q_AXI_awaddr;    // write address address (channel data)
 reg   [2:0]       q_AXI_awprot;    // write address ??
-wire  [0:0]       w_AXI_awready;   // write address ready
-reg   [0:0]       q_AXI_awvalid;   // write address valid
-reg   [0:0]       q_AXI_bready;    // (write) response ready  
+wire              w_AXI_awready;   // write address ready
+reg               q_AXI_awvalid;   // write address valid
+reg               q_AXI_bready;    // (write) response ready  
 wire  [1:0]       w_AXI_bresp;     // write response   
-wire  [0:0]       w_AXI_bvalid;    // write response valid 
+wire              w_AXI_bvalid;    // write response valid 
 wire  [31:0]      w_AXI_rdata;     // read data
-reg   [0:0]       q_AXI_rready;    // read ready
+reg               q_AXI_rready;    // read ready
 wire  [1:0]       w_AXI_rresp;     // read response
-wire  [0:0]       w_AXI_rvalid;    // read valid
+wire              w_AXI_rvalid;    // read valid
 reg   [31:0]      q_AXI_wdata;     // write data
-wire  [0:0]       w_AXI_wready;    // write ready
+wire              w_AXI_wready;    // write ready
 reg   [3:0]       q_AXI_wstrb;     // ??
-reg   [0:0]       q_AXI_wvalid;     // write valid
+reg               q_AXI_wvalid;     // write valid
 //IRQ to AXI master
 wire  IRQ;
 
@@ -40,7 +43,7 @@ wire  IRQ;
 /**
  * Instantiate the DUT.
 */
-dule axi2spi_bridge(
+axi2spi_bridge axi_spi_DUT(
 //CLK
     .FCLK_CLK0(sys_clk),
 //RST
@@ -80,6 +83,12 @@ dule axi2spi_bridge(
     .o_sclk(sclk)
     );
 
+
+/**
+ * Macros for eeprom:
+*/
+M95XXX_Macro_mux M95XXX_Macro_mux_inst ();
+
 /**
  * Instantiate the SPI eeprom behaviorall.
 */
@@ -93,37 +102,46 @@ M95XXX eeprom_model_inst(
     .VCC(1'b1),
     .VSS(1'b0)
     );
+    
 
 /******************************************************************************
  * GENERATE STIMULUS
 ******************************************************************************/
-enum integer {ADDR_READ, ADDR_WRITE, WRITE_DATA, READ_DATA, RESPONSE} AXI_CHANNEL;
+
+// AXI is a 32 bits width bus. We must multiply addresses by 4.
+`define ADDR_CONTROL_REG    32'h0*4
+`define ADDR_STATUS_REG     32'h1*4
+`define ADDR_DATA_REG       32'h2*4 
+
+enum  integer{ADDR_READ, ADDR_WRITE, WRITE_DATA, READ_DATA, RESPONSE} AXI_CHANNEL;
 
 /**
  * Set all register initial state to 0;
 */
 initial begin
-    spi_select      <= 0;
-    sys_clk         <= 0;
-    rst_n           <= 0;
-    w_AXI_araddr    <= 0;    // read address address (data)
-    w_AXI_arprot    <= 0;    // ???
-    w_AXI_arvalid   <= 0;   // read address valid
-    w_AXI_awaddr    <= 0;    // write address address (channel data)
-    w_AXI_awprot    <= 0;    // write address ??
-    w_AXI_awvalid   <= 0;   // write address valid
-    w_AXI_bready    <= 0;    // (write) response ready 
-    w_AXI_rready    <= 0;    // read ready
-    w_AXI_wdata     <= 0;     // write data
-    w_AXI_wstrb     <= 0;     // ??
-    w_AXI_wvalid    <= 0;     // write valid
+    spi_select      = 0;
+    sys_clk         = 0;
+    rst_n           = 0;
+    q_AXI_araddr    = 0;    // read address address (data)
+    q_AXI_arprot    = 0;    // ???
+    q_AXI_arvalid   = 0;   // read address valid
+    q_AXI_awaddr    = 0;    // write address address (channel data)
+    q_AXI_awprot    = 0;    // write address ??
+    q_AXI_awvalid   = 0;   // write address valid
+    q_AXI_bready    = 0;    // (write) response ready 
+    q_AXI_rready    = 0;    // read ready
+    q_AXI_wdata     = 0;     // write data
+    q_AXI_wstrb     = 0;     // ??
+    q_AXI_wvalid    = 0;     // write valid
 end
+
+initial $timeformat(-9, 0, " ns", 8);
 
 /**
  * Generate system clock for the AXI BUS
 */
 always #5 begin
-    sclk <= ~ sclk;
+    sys_clk <= ~ sys_clk;
 end
 
 /**
@@ -134,7 +152,7 @@ task reset_sequence;
         rst_n = 0;
         #20
         rst_n = 1;
-        #20
+        #20 begin end
     end
 endtask
 
@@ -146,8 +164,41 @@ task axi_write_data;
     input [31:0] data_to_write;
     input [31:0] target_address;
     begin
-        _axi_channel_write_(target_address, ADDR_WRITE);
-        _axi_channel_write_(data_to_write, ADDR_WRITE);
+        fork 
+        
+            begin
+                $display("_axi_channel_write_:: ADDR_WRITE. q_AXI_awaddr, target_address %h  , w_AXI_awready, q_AXI_awvalid  ", target_address);
+                
+                
+                @(posedge sys_clk)
+                q_AXI_awaddr <= target_address;
+                q_AXI_awvalid <= 1'b1;
+                if(w_AXI_awready !== 1'b1) begin: wait_for_ready_ADW
+                    forever @(posedge sys_clk) begin
+                        if(w_AXI_awready == 1'b1)
+                            disable wait_for_ready_ADW;
+                    end
+                end
+                    
+                q_AXI_awvalid <= 1'b0;
+            end
+            begin
+                $display("_axi_channel_write_:: WRITE_DATA. qq_AXI_wdata, data_to_write %h  , w_AXI_wready, q_AXI_wvalid  ", data_to_write);
+                
+                @(posedge sys_clk)
+                q_AXI_wdata <= data_to_write;
+                q_AXI_wvalid <= 1'b1;
+                if(w_AXI_wready !== 1'b1) begin: wait_for_ready_WD
+                    forever @(posedge sys_clk) begin
+                        if(w_AXI_wready == 1'b1)
+                            disable wait_for_ready_WD;
+                    end
+                end
+                    
+                q_AXI_wvalid <= 1'b0;
+            end
+        join;
+        $display("END ");
     end
 endtask
 
@@ -157,24 +208,71 @@ endtask
 */
 task _axi_channel_write_;
     input [31:0] data_to_write;
-    input AXI_CHANNEL channel_id;
+    input integer channel_id;
     begin
-    
-    case (channel_id) begin
+       
+    case (channel_id)
         ADDR_READ: begin
-            _axi_channel_write2_(q_AXI_araddr, w_AXI_arready, q_AXI_arvalid)
+            $display("_axi_channel_write_:: ADDR_READ. q_AXI_araddr,    data_to_write: %h   w_AXI_arready   q_AXI_arvalid   ", data_to_write);
+            
+            
+            @(posedge sys_clk)
+            q_AXI_araddr <= data_to_write;
+            q_AXI_arvalid <= 1'b1;
+            if(w_AXI_arready !== 1'b1) begin
+                forever @(posedge sys_clk) begin: wait_for_ready
+                    if(w_AXI_arready == 1'b1)
+                        disable wait_for_ready;
+                end
+            end
+                
+            q_AXI_arvalid <= 1'b0;
+        
+            
+            // _axi_channel_write2_(q_AXI_araddr, data_to_write, w_AXI_arready, q_AXI_arvalid);
         end
         ADDR_WRITE: begin
-            _axi_channel_write2_(q_AXI_awaddr, w_AXI_awready, q_AXI_awvalid)
+            $display("_axi_channel_write_:: ADDR_WRITE. q_AXI_awaddr, data_to_write %h  , w_AXI_awready, q_AXI_awvalid  ", data_to_write);
+            
+            
+            @(posedge sys_clk)
+            q_AXI_awaddr <= data_to_write;
+            q_AXI_awvalid <= 1'b1;
+            if(w_AXI_awready !== 1'b1) begin
+                forever @(posedge sys_clk) begin: wait_for_ready_ADW
+                    if(w_AXI_awready == 1'b1)
+                        disable wait_for_ready_ADW;
+                end
+            end
+                
+            q_AXI_awvalid <= 1'b0;
+        
+            
+            // _axi_channel_write2_(q_AXI_awaddr, data_to_write, w_AXI_awready, q_AXI_awvalid);
         end
         WRITE_DATA: begin
-            _axi_channel_write2_(q_AXI_wdata, w_AXI_wready, q_AXI_wvalid)
+            $display("_axi_channel_write_:: WRITE_DATA. qq_AXI_wdata, data_to_write %h  , w_AXI_wready, q_AXI_wvalid  ", data_to_write);
+            
+            @(posedge sys_clk)
+            q_AXI_wdata <= data_to_write;
+            q_AXI_wvalid <= 1'b1;
+            if(w_AXI_wready !== 1'b1) begin
+                forever @(posedge sys_clk) begin: wait_for_ready_WD
+                    if(w_AXI_wready == 1'b1)
+                        disable wait_for_ready_WD;
+                end
+            end
+                
+            q_AXI_wvalid <= 1'b0;
+        
+            
+            //_axi_channel_write2_(q_AXI_wdata, data_to_write, w_AXI_wready, q_AXI_wvalid);
         end
         READ_DATA: begin
-            $display("ERROR: read write")
+            $display("ERROR: read write");
         end
         RESPONSE: begin
-            $display("ERROR: response write")
+            $display("ERROR: response write");
         end
         
     endcase
@@ -188,23 +286,29 @@ endtask
  * 
  */
 task _axi_channel_write2_;
-    output  [31:0]      channel_data;    // read address address (data)
-    // wire  [2:0]       q_AXI_arprot;    // ???
-    input  [0:0]       channel_ready;   // read address ready
-    output  [0:0]       channel_valid;   // read address valid
+    output  [31:0]  channel_data;    // read address address (data)
+    input   [31:0]  data_to_write;
+    input           channel_ready;   // read address ready
+    output          channel_valid;   // read address valid
+    
     begin
        
-        @posedge (sys_clk)
+        @(posedge sys_clk)
         channel_data <= data_to_write;
+        $display("%t _axi_channel_write2_:: ENTER data_to_write: %h", $time, data_to_write);
+        $display("_axi_channel_write2_:: ENTER channel_data: %h", channel_data);
         channel_valid <= 1'b1;
-        if(channel_ready == 1'b0) begin
-            forever @posedge (sys_clk) begin: wait_for_ready
+        if(channel_ready !== 1'b1) begin
+            forever @(posedge sys_clk) begin: wait_for_ready
                 if(channel_ready == 1'b1)
                     disable wait_for_ready;
             end
         end
             
         channel_valid <= 1'b0;
+        
+        #0ns
+        $display("_axi_channel_write2_:: LEAVE");
     end
 endtask
 
@@ -213,13 +317,136 @@ endtask
 */
 task axi_monitor_read;
     begin
-        AXI_rready <= 1'b1;
-        forever @posedge (sys_clk) begin: wait_for_valid
-                if(AXI_rvalid == 1'b1) begin
+    
+        $display("axi_monitor_read:: ENTER");
+        fork 
+            forever @ (w_AXI_rvalid) begin
+                q_AXI_rready <= w_AXI_rvalid;
+            end
+        
+            forever @ (posedge sys_clk) begin: wait_for_valid
+                if(w_AXI_rvalid == 1'b1) begin
                     
-                    $display("Data got from AXI read: %h ", AXI_rdata);
+                    $display("Data got from AXI read: %h ", w_AXI_rdata);
                 end
             end
+        join;
+        $display("axi_monitor_read:: LEAVE");
+    end
+endtask
+
+/**
+ * write_eeprom
+*/
+task write_eeprom;
+    input [7:0] eeprom_address;
+    input [7:0] eeprom_datas[];
+    input integer number_of_datas;
+
+    begin
+        $display("write_eeprom:: ENTER");
+        
+        spi_select <= '0;
+        
+        #500ns
+        
+        axi_write_data(
+            .target_address(`ADDR_DATA_REG),
+            .data_to_write(8'h02)   // Write
+            );
+            
+        // wait(w_IRQ == 1);
+        
+        #10us
+        
+        axi_write_data(
+            .target_address(`ADDR_DATA_REG),
+            .data_to_write(eeprom_address)   // 
+            );
+            
+            
+        for (int i = 0; i< number_of_datas; i++) begin
+            
+            #10us
+            
+            axi_write_data(
+                .target_address(`ADDR_DATA_REG),
+                .data_to_write(eeprom_datas[i])   // 
+                );
+        end
+            
+            
+        $display("write_eeprom :: Wait for eeprom write time...");
+        #10us
+        #500ns
+            
+        spi_select <= '1;
+        
+        #500ns begin end
+        $display("write_eeprom:: LEAVE");
+    end
+endtask
+
+/**
+ * read_eeprom
+*/
+task read_eeprom;
+    input eeprom_address;
+    input integer count_of_bytes;
+
+    begin
+        
+        
+        spi_select <= '0;
+        
+        #500ns
+        
+        axi_write_data(
+            .target_address(`ADDR_DATA_REG),
+            .data_to_write(8'h03)   // read
+            );
+            
+        // wait(w_IRQ == 1);
+        
+        #10us
+        
+        axi_write_data(
+            .target_address(`ADDR_DATA_REG),
+            .data_to_write(eeprom_address)   // 
+            );
+            
+            
+        for (int i = 0; i< count_of_bytes; i++) begin
+            
+            #10us
+            
+            axi_write_data(
+                .target_address(`ADDR_DATA_REG),
+                .data_to_write(0)   // 
+                );
+        end
+            
+            
+        #500ns
+            
+        spi_select <= '1;
+        
+        #500ns begin end
+        
+    end
+endtask
+
+/**
+ * init_spi_periperal
+*/
+task init_spi_periperal;
+    begin
+        $display("init_spi_periperal:: ENTER");
+        axi_write_data(
+            .target_address(`ADDR_CONTROL_REG),
+            .data_to_write(8'b1101_0010)   // SPIE SPE DORD MSTR CPOL CPHA SPR1 SPR0
+            );
+        $display("init_spi_periperal:: LEAVE");
     end
 endtask
 
@@ -227,8 +454,26 @@ endtask
  *
  ******************************************************************************/
 initial begin
-    #50
-    // axi_write_data(...) TODO
+    #50ns
+    
+    init_spi_periperal();
+    
+    #50ns
+    
+    fork
+        axi_monitor_read();
+    join_none;
+    
+    #50ns
+    
+    write_eeprom(4, {8'haa, 8'hff, 8'h00, 8'h55, 8'hc3, 8'h3c}, 6);
+    
+    #50ns
+    
+    read_eeprom(4, 6);
+    
+    #50ns
+    begin end
 end
 
     
