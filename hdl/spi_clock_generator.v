@@ -37,9 +37,39 @@ module spi_clock_generator(
     
     // The spi clock counter. The max value is depends on the frequency which
     // derived by i_spr0 and i_spr1 
-    reg [31:0] q_spi_sclk_cntr;
+    reg [6:0] q_spi_sclk_cntr;
+	wire w_sclk_internal;
+	wire [1:0]w_clk_select;
+	reg q_sclk_internal_d1     //alwaysba reg d1->eggyel kesleltetett
     
-    
+	always @(posedge clk) begin
+		if (reset) begin
+			q_spi_cntr <= 7'b0 ;
+		end else  begin
+			q_spi_cntr <= q_spi_cntr + 1;
+		end
+	end	
+	
+	assign w_clk_select={i_spr0,i_spr1};
+	
+	assign w_sclk_internal = (w_clk_select==0) ? q_spi_cntr[1] :
+							 (w_clk_select==1) ? q_spi_cntr[3] :
+							 (w_clk_select==2) ? q_spi_cntr[5] :
+							 (w_clk_select==3) ? q_spi_cntr[6] :
+							  0; // soha nem jut ide
+							  
+	assign o_sclk=w_sclk_internal;	
+	
+	always @(posedge clk) begin	
+		if (reset) begin
+			q_sclk_internal_d1<=0;
+		end
+		else if
+			q_sclk_internal_d1 <=w_sclk_internal;
+				end
+	//assignel összerakni -> rising falling
+	
+	
     // -- TODO --
     
     
