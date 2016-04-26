@@ -40,7 +40,13 @@ module spi_clock_generator(
     reg [6:0] q_spi_sclk_cntr;
 	wire w_sclk_internal;
 	wire [1:0]w_clk_select;
-	reg q_sclk_internal_d1     //alwaysba reg d1->eggyel kesleltetett
+	reg q_sclk_internal_d1     //alwaysbe reg, d1->eggyel kesleltetett
+	wire w_sclk_rising_edge_internal;
+	wire w_sclk_falling_edge_internal;
+	wire w_sample_spi_data_internal;
+	wire w_setup_spi_data;
+	wire [1:0] w_sample_setup_select;
+
     
 	always @(posedge clk) begin
 		if (reset) begin
@@ -66,9 +72,40 @@ module spi_clock_generator(
 		end
 		else if
 			q_sclk_internal_d1 <=w_sclk_internal;
-				end
-	//assignel összerakni -> rising falling
+		end
+	end
 	
+	//felfuto el
+	assign w_sclk_rising_edge_internal = (w_sclk_internal > q_sclk_internal_d1) ? 1:
+										 0;												//ha nagyobb az aktualis, mint az elozo ->felfuto
+										 
+	assign o_sclk_rising_edge = w_sclk_rising_edge_internal;
+	
+	//lefuto el
+	assign w_sclk_rising_edge_internal = (w_sclk_internal < q_sclk_internal_d1) ? 1:
+										 0;												//ha kisebb ->lefuto
+
+	assign o_sclk_falling_edge = w_sclk_falling_edge_internal;
+	
+	assign w_sample_setup_select={i_cpol,i_cpha};
+	
+	//o_sample_spi_data
+	assign w_sample_spi_data_internal = (w_sample_setup_select==0) ? w_sclk_rising_edge_internal:
+										(w_sample_setup_select==1) ? w_sclk_falling_edge_internal:
+										(w_sample_setup_select==2) ? w_sclk_falling_edge_internal:
+										(w_sample_setup_select==3) ? w_sclk_rising_edge_internal:
+										0;
+	
+	assign o_sample_spi_data = w_sample_spi_data_internal;
+	
+	//o_setup_spi_data
+	assign w_setup_spi_data = 	(w_sample_setup_select==0) ? w_sclk_falling_edge_internal:
+								(w_sample_setup_select==1) ? w_sclk_rising_edge_internal:
+								(w_sample_setup_select==2) ? w_sclk_rising_edge_internal:
+								(w_sample_setup_select==3) ? w_sclk_falling_edge_internal:
+								0;
+								
+	assign o_setup_spi_data = w_setup_spi_data;
 	
     // -- TODO --
     
