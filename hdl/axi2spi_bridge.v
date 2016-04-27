@@ -83,6 +83,31 @@ wire [31:0] w_data_reg;
 
 
 // Implementation of spi_controller:
-// -- TODO --
+
+module spi_controller(
+//CLK
+    .clk(FCLK_CLK0),
+//RST
+    .RST_N(RST_N),
+//IRQ to AXI master
+    .o_IRQ(w_irq),
+
+//Signals towards AXI interface:
+    .i_data_to_registers(w_data_to_registers)
+    .i_wr_controll_reg(w_wr_controll_reg),  // Offset: 0x00     
+    .i_wr_data_reg(w_wr_data_reg),      // Offset: 0x08
+    .i_read_status_reg(w_read_status_reg),
+    
+    .o_controll_reg(w_controll_reg),
+    .o_status_reg(w_status_reg),
+    .o_data_reg(w_data_reg),
+    
+//SPI interface
+    .i_miso(i_miso),
+    .o_mosi(o_mosi),
+    .o_sclk(o_sclk)
+    
+    );
+    
 
 endmodule
