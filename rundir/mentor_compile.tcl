@@ -27,7 +27,7 @@ proc axi_spi_wave { } {
 
 proc axi_spi_run { } {
     # run 10000ns
-    run 1000us
+    run 100us
 }
 
 proc axi_spi_all { } {

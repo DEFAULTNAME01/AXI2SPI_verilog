@@ -150,6 +150,7 @@ end
 task reset_sequence;
     begin
         rst_n = 0;
+        spi_select = 1;
         #20
         rst_n = 1;
         #20 begin end
@@ -335,6 +336,29 @@ task axi_monitor_read;
     end
 endtask
 
+task eeprom_write_enable;
+    begin
+        $display("eeprom_write_enable:: ENTER");
+    
+        #500ns
+        
+        spi_select <= '0;
+        #500ns
+        // Write command of EEPROM 
+        axi_write_data(
+            .target_address(`ADDR_DATA_REG),
+            .data_to_write(8'h06)   // Write
+            );
+    
+        #3us
+        spi_select <= '1;
+        #10us            
+        $display("eeprom_write_enable:: LEAVE");
+    end
+endtask
+    
+    
+
 /**
  * write_eeprom
 */
@@ -346,10 +370,12 @@ task write_eeprom;
     begin
         $display("write_eeprom:: ENTER");
         
+        eeprom_write_enable();
+        
         spi_select <= '0;
         
         #500ns
-        
+        // Write command of EEPROM 
         axi_write_data(
             .target_address(`ADDR_DATA_REG),
             .data_to_write(8'h02)   // Write
@@ -357,8 +383,9 @@ task write_eeprom;
             
         // wait(w_IRQ == 1);
         
-        #10us
+        #3us
         
+        // Write address of EEPROM 
         axi_write_data(
             .target_address(`ADDR_DATA_REG),
             .data_to_write(eeprom_address)   // 
@@ -367,22 +394,19 @@ task write_eeprom;
             
         for (int i = 0; i< number_of_datas; i++) begin
             
-            #10us
+            #3us
             
+            // data of eeprom
             axi_write_data(
                 .target_address(`ADDR_DATA_REG),
                 .data_to_write(eeprom_datas[i])   // 
                 );
         end
             
-            
-        $display("write_eeprom :: Wait for eeprom write time...");
-        #10us
-        #500ns
-            
+        #3us
         spi_select <= '1;
-        
-        #500ns begin end
+        $display("write_eeprom :: Wait for eeprom write time...");
+        #10us            
         $display("write_eeprom:: LEAVE");
     end
 endtask
@@ -401,6 +425,7 @@ task read_eeprom;
         
         #500ns
         
+        // REad command of EEPROM 
         axi_write_data(
             .target_address(`ADDR_DATA_REG),
             .data_to_write(8'h03)   // read
@@ -408,8 +433,9 @@ task read_eeprom;
             
         // wait(w_IRQ == 1);
         
-        #10us
+        #3us
         
+        // REad address of EEPROM 
         axi_write_data(
             .target_address(`ADDR_DATA_REG),
             .data_to_write(eeprom_address)   // 
@@ -418,7 +444,7 @@ task read_eeprom;
             
         for (int i = 0; i< count_of_bytes; i++) begin
             
-            #10us
+            #3us
             
             axi_write_data(
                 .target_address(`ADDR_DATA_REG),
@@ -427,7 +453,7 @@ task read_eeprom;
         end
             
             
-        #500ns
+        #3us
             
         spi_select <= '1;
         
@@ -454,6 +480,10 @@ endtask
  *
  ******************************************************************************/
 initial begin
+    #50ns
+    
+    reset_sequence();
+    
     #50ns
     
     init_spi_periperal();

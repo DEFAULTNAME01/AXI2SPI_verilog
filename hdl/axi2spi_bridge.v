@@ -41,6 +41,8 @@ wire w_wr_controll_reg, w_wr_data_reg;
 wire [31:0] w_controll_reg;
 wire [31:0] w_status_reg;
 wire [31:0] w_data_reg;
+wire        w_irq;
+
     
 // Implementation of the AXI interface:
  axi_interface axi_interface_inst(
@@ -84,7 +86,7 @@ wire [31:0] w_data_reg;
 
 // Implementation of spi_controller:
 
-module spi_controller(
+spi_controller  spi_controller_inst(
 //CLK
     .clk(FCLK_CLK0),
 //RST
@@ -93,7 +95,7 @@ module spi_controller(
     .o_IRQ(w_irq),
 
 //Signals towards AXI interface:
-    .i_data_to_registers(w_data_to_registers)
+    .i_data_to_registers(w_data_to_registers),
     .i_wr_controll_reg(w_wr_controll_reg),  // Offset: 0x00     
     .i_wr_data_reg(w_wr_data_reg),      // Offset: 0x08
     .i_read_status_reg(w_read_status_reg),

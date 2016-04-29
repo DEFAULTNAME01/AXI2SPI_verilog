@@ -25,6 +25,7 @@ add wave -noupdate -expand -group BridgeTopIO /simulation_top/axi_spi_DUT/RST_N
 add wave -noupdate -expand -group BridgeTopIO /simulation_top/axi_spi_DUT/i_miso
 add wave -noupdate -expand -group BridgeTopIO /simulation_top/axi_spi_DUT/o_mosi
 add wave -noupdate -expand -group BridgeTopIO /simulation_top/axi_spi_DUT/o_sclk
+add wave -noupdate /simulation_top/spi_select
 add wave -noupdate -expand -group axi_interfaceIO /simulation_top/axi_spi_DUT/axi_interface_inst/AXI_araddr
 add wave -noupdate -expand -group axi_interfaceIO /simulation_top/axi_spi_DUT/axi_interface_inst/AXI_arprot
 add wave -noupdate -expand -group axi_interfaceIO /simulation_top/axi_spi_DUT/axi_interface_inst/AXI_arready
@@ -52,8 +53,11 @@ add wave -noupdate -expand -group axi_interfaceIO /simulation_top/axi_spi_DUT/ax
 add wave -noupdate -expand -group axi_interfaceIO /simulation_top/axi_spi_DUT/axi_interface_inst/o_data_to_registers
 add wave -noupdate -expand -group axi_interfaceIO /simulation_top/axi_spi_DUT/axi_interface_inst/o_wr_controll_reg
 add wave -noupdate -expand -group axi_interfaceIO /simulation_top/axi_spi_DUT/axi_interface_inst/o_wr_data_reg
+add wave -noupdate -expand -group interanl /simulation_top/axi_spi_DUT/spi_controller_inst/q_spi_bit_cntr
+add wave -noupdate -expand -group interanl /simulation_top/axi_spi_DUT/spi_controller_inst/spi_clock_generator_inst/i_reset
+add wave -noupdate -expand -group interanl /simulation_top/axi_spi_DUT/spi_controller_inst/w_active_spi_transaction
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {2251000 ps} 0}
+WaveRestoreCursors {{Cursor 1} {1975000 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -69,4 +73,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {998974 ns} {1000054 ns}
+WaveRestoreZoom {0 ps} {10500 ns}
