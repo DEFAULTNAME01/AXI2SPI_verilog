@@ -11,7 +11,7 @@ module axi_interface(
 //CLK
     input   FCLK_CLK0,
 //RST
-    // input   RST_N,
+    input   RST_N,
     
 //Signals towards register interface:
     output  reg [31:0] o_data_to_registers,
@@ -48,7 +48,7 @@ module axi_interface(
 wire clk;
 //wire reset;
 
-//assign reset = ~RST_N;
+assign reset = ~RST_N;
 assign clk = FCLK_CLK0;
 
        
@@ -91,7 +91,12 @@ always @(posedge clk) begin
 end
 
 always @(posedge clk) begin
-    AXI_rvalid[0] <= AXI_rready[0] & ~AXI_rvalid[0];
+    if(reset)
+        AXI_rvalid[0] <= 1'b0;
+    else if(AXI_arvalid)
+        AXI_rvalid[0] <= 1'b1;
+    else if(AXI_rready)
+        AXI_rvalid[0] <= 1'b0;
 end
  
 assign AXI_arready[0] = AXI_arvalid[0];

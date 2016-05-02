@@ -61,7 +61,7 @@ wire w_spr0;
 // Concurrent assignments.
 assign o_controll_reg   = q_controll_reg;
 assign o_status_reg     = w_status_reg;
-assign o_data_reg       = q_data_reg;
+assign o_data_reg       = q_spi_miso_shr;
 assign w_reset          = ~RST_N;
 
 assign w_irq_en         = q_controll_reg[7];
@@ -123,6 +123,8 @@ assign w_status_reg = {q_irq_flag, q_collision_flag, 6'b0};
 
 // control register
 always @(posedge clk) begin
+    if(w_reset)
+        q_controll_reg <= '0;
     if(i_wr_controll_reg) begin
         q_controll_reg <= i_data_to_registers;
     end
@@ -131,7 +133,9 @@ end
 
 //data register
 always @(posedge clk) begin
-    if(i_wr_data_reg) begin
+    if (w_reset)
+        q_data_reg <= '0;
+    else if(i_wr_data_reg) begin
         q_data_reg <= i_data_to_registers;
     end
     if(w_active_spi_transaction) begin
@@ -143,6 +147,9 @@ always @(posedge clk) begin
             end
         end
     end
+    // else begin
+        // q_data_reg <= q_spi_miso_shr;
+    // end
 end
  
 
@@ -172,7 +179,9 @@ assign w_active_spi_transaction = q_spi_bit_cntr <8;
 
  //interrupt flag
 always @(posedge clk) begin
-    if(q_spi_bit_cntr == 7 && w_sample_spi_data) begin
+    if (w_reset) 
+        q_irq_flag <= 1'b0;
+    else if(q_spi_bit_cntr == 7 && w_sample_spi_data) begin
         q_irq_flag <= 1'b1;
     end else begin
         if(i_read_status_reg)
@@ -184,12 +193,16 @@ assign o_IRQ = q_irq_flag;
  
  //collision flag
 always @(posedge clk) begin
-    if(w_active_spi_transaction) begin
-        if(i_wr_controll_reg | i_wr_data_reg)
-            q_collision_flag <= 1'b1;
+    if(w_reset) begin
+        q_collision_flag <= 1'b0;
     end else begin
-        if(i_read_status_reg)
-            q_collision_flag <= 1'b0;
+        if(w_active_spi_transaction) begin
+            if(i_wr_controll_reg | i_wr_data_reg)
+                q_collision_flag <= 1'b1;
+        end else begin
+            if(i_read_status_reg)
+                q_collision_flag <= 1'b0;
+        end
     end
 end
  

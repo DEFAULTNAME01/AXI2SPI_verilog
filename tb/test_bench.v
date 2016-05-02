@@ -113,7 +113,7 @@ M95XXX eeprom_model_inst(
 `define ADDR_STATUS_REG     32'h1*4
 `define ADDR_DATA_REG       32'h2*4 
 
-enum  integer{ADDR_READ, ADDR_WRITE, WRITE_DATA, READ_DATA, RESPONSE} AXI_CHANNEL;
+// enum  integer{ADDR_READ, ADDR_WRITE, WRITE_DATA, READ_DATA, RESPONSE} AXI_CHANNEL;
 
 /**
  * Set all register initial state to 0;
@@ -159,6 +159,52 @@ endtask
 
     
 /**
+ * axi_read_data() task read 32 bits of data from the AXI2SPI bridge.
+*/
+task axi_read_data;
+    input [31:0] target_address;
+    begin
+        fork 
+        
+            begin
+                $display("axi_read_data:: ADDR_WRITE. q_AXI_araddr, target_address %h  , w_AXI_arready, q_AXI_arvalid  ", target_address);
+                
+                
+                @(posedge sys_clk)
+                q_AXI_araddr <= target_address;
+                q_AXI_arvalid <= 1'b1;
+                if(w_AXI_arready !== 1'b1) begin: wait_for_ready_ADW
+                    forever @(posedge sys_clk) begin
+                        if(w_AXI_arready == 1'b1)
+                            disable wait_for_ready_ADW;
+                    end
+                end
+                    
+                q_AXI_arvalid <= 1'b0;
+            end
+            begin
+                // $display("axi_read_data:: WRITE_DATA. qq_AXI_wdata, data_to_write %h  , w_AXI_wready, q_AXI_wvalid  ", data_to_write);
+                
+                // @(posedge sys_clk)
+                // q_AXI_wdata <= data_to_write;
+                // q_AXI_wvalid <= 1'b1;
+                // if(w_AXI_wready !== 1'b1) begin: wait_for_ready_WD
+                    // forever @(posedge sys_clk) begin
+                        // if(w_AXI_wready == 1'b1)
+                            // disable wait_for_ready_WD;
+                    // end
+                // end
+                    
+                // q_AXI_wvalid <= 1'b0;
+            end
+        join;
+        $display("END ");
+    end
+endtask
+
+
+   
+/**
  * axi_write_data() task writes 32 bits of data to the AXI2SPI bridge.
 */
 task axi_write_data;
@@ -168,7 +214,7 @@ task axi_write_data;
         fork 
         
             begin
-                $display("_axi_channel_write_:: ADDR_WRITE. q_AXI_awaddr, target_address %h  , w_AXI_awready, q_AXI_awvalid  ", target_address);
+                $display("axi_write_data:: ADDR_WRITE. q_AXI_awaddr, target_address %h  , w_AXI_awready, q_AXI_awvalid  ", target_address);
                 
                 
                 @(posedge sys_clk)
@@ -184,7 +230,7 @@ task axi_write_data;
                 q_AXI_awvalid <= 1'b0;
             end
             begin
-                $display("_axi_channel_write_:: WRITE_DATA. qq_AXI_wdata, data_to_write %h  , w_AXI_wready, q_AXI_wvalid  ", data_to_write);
+                $display("axi_write_data:: WRITE_DATA. qq_AXI_wdata, data_to_write %h  , w_AXI_wready, q_AXI_wvalid  ", data_to_write);
                 
                 @(posedge sys_clk)
                 q_AXI_wdata <= data_to_write;
@@ -206,7 +252,7 @@ endtask
    
 /**
  * 
-*/
+
 task _axi_channel_write_;
     input [31:0] data_to_write;
     input integer channel_id;
@@ -281,7 +327,7 @@ task _axi_channel_write_;
     end
 endtask
 
-
+*/
  
 /**
  * 
@@ -415,7 +461,7 @@ endtask
  * read_eeprom
 */
 task read_eeprom;
-    input eeprom_address;
+    input [7:0] eeprom_address;
     input integer count_of_bytes;
 
     begin
@@ -425,7 +471,7 @@ task read_eeprom;
         
         #500ns
         
-        // REad command of EEPROM 
+        // send REad command of EEPROM 
         axi_write_data(
             .target_address(`ADDR_DATA_REG),
             .data_to_write(8'h03)   // read
@@ -435,21 +481,31 @@ task read_eeprom;
         
         #3us
         
-        // REad address of EEPROM 
+        // send REad address of EEPROM 
         axi_write_data(
             .target_address(`ADDR_DATA_REG),
             .data_to_write(eeprom_address)   // 
             );
             
+        #3us
+            
             
         for (int i = 0; i< count_of_bytes; i++) begin
             
-            #3us
-            
+            // send dummy 0x00 to read data
             axi_write_data(
                 .target_address(`ADDR_DATA_REG),
                 .data_to_write(0)   // 
                 );
+                
+            
+            #3us    
+            // send dummy 0x00 to read data
+            axi_read_data(
+                .target_address(`ADDR_DATA_REG)
+                );
+                
+                
         end
             
             

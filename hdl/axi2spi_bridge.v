@@ -43,13 +43,15 @@ wire [31:0] w_status_reg;
 wire [31:0] w_data_reg;
 wire        w_irq;
 
+assign IRQ = w_irq;
+
     
 // Implementation of the AXI interface:
  axi_interface axi_interface_inst(
 //CLK
     .FCLK_CLK0(FCLK_CLK0),
 //RST
-    // .RST_N(RST_N),
+    .RST_N(RST_N),
     
 //Signals towards register interface:
     .o_data_to_registers(w_data_to_registers),
