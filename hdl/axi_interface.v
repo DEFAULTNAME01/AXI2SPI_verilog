@@ -24,7 +24,7 @@ module axi_interface(
     
 //AXI INTERFACE
     input   [31:0]      AXI_araddr,    // read address address (data)
-    input   [2:0]       AXI_arprot,    // ???
+    input   [2:0]       AXI_arprot,    // 通常是保护属性（cacheability，privilege level等），在Lite接口一般忽略。
     output  [0:0]       AXI_arready,   // read address ready
     input   [0:0]       AXI_arvalid,   // read address valid
     input   [31:0]      AXI_awaddr,    // write address address (channel data)
@@ -60,13 +60,13 @@ end
 // WRITE  --  this block control the enable of registers to write them from AXI
 // Note that the second assignment will be valid in verilog.
 always @(*) begin
-    o_wr_data_reg <= '0;
-    o_wr_controll_reg <= '0;
+    o_wr_data_reg = 1'b0;
+    o_wr_controll_reg = 1'b0;
     if (AXI_awvalid[0] & AXI_wvalid[0]) begin
         if(AXI_awaddr[15:2] == `ADDR_CONTROL_REG) // BASE + 0x00
-            o_wr_controll_reg <= '1;
+            o_wr_controll_reg = 1'b1;
         if(AXI_awaddr[15:2] == `ADDR_DATA_REG) // BASE + 0x08
-            o_wr_data_reg <= '1;
+            o_wr_data_reg = 1'b1;
     end
 end
     
@@ -80,15 +80,19 @@ assign AXI_bresp = 2'h0;
 
 // READ  --  this block drive the AXI when the AXI bus-master reads a data.
 always @(posedge clk) begin
-    AXI_rdata <= '0;
-    if (AXI_arvalid[0])
-        if(AXI_araddr[15:2] == `ADDR_CONTROL_REG) // BASE + 0x00
+    AXI_rdata <= 32'h0;
+    if (AXI_arvalid[0]) begin
+        if(AXI_araddr[15:2] == `ADDR_CONTROL_REG)
             AXI_rdata <= i_controll_reg;
-        if(AXI_araddr[15:2] ==  `ADDR_STATUS_REG) // BASE + 0x04
+        else if(AXI_araddr[15:2] == `ADDR_STATUS_REG)
             AXI_rdata <= i_status_reg;
-        if(AXI_araddr[15:2] == `ADDR_DATA_REG) // BASE + 0x08
+        else if(AXI_araddr[15:2] == `ADDR_DATA_REG)
             AXI_rdata <= i_data_reg;
+        else
+            AXI_rdata <= 32'hDEAD_BEEF; // debug用，可以填非法值提示错误
+    end
 end
+
 
 always @(posedge clk) begin
     if(reset)
