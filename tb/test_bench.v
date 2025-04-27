@@ -245,6 +245,13 @@ task axi_write_data;
                 q_AXI_wvalid <= 1'b0;
             end
         join;
+       // 写完以后处理bready-bvalid握手
+        @(posedge sys_clk);
+        q_AXI_bready <= 1'b1;
+        wait(w_AXI_bvalid == 1'b1);
+        @(posedge sys_clk);
+        q_AXI_bready <= 1'b0;
+        
         $display("END ");
     end
 endtask
