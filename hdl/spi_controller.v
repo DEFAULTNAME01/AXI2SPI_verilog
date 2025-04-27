@@ -178,17 +178,17 @@ end
 assign w_active_spi_transaction = q_spi_bit_cntr <8;
 
 
- //interrupt flag
+// interrupt flag
 always @(posedge clk) begin
-    if (w_reset) 
+    if (w_reset) begin
         q_irq_flag <= 1'b0;
-    else if(q_spi_bit_cntr == 7 && w_sample_spi_data) begin
+    end else if (i_read_status_reg) begin
+        q_irq_flag <= 1'b0;
+    end else if (q_spi_bit_cntr == 7 && w_sample_spi_data) begin
         q_irq_flag <= 1'b1;
-    end else begin
-        if(i_read_status_reg)
-            q_irq_flag <= 1'b0;
     end
 end
+
  
 assign o_IRQ = q_irq_flag;
  
@@ -199,10 +199,10 @@ always @(posedge clk) begin
     end else begin
         if(w_active_spi_transaction) begin
             if(i_wr_controll_reg | i_wr_data_reg)
-                q_collision_flag <= 1'b1;
+                q_collision_flag <= 1'b1;// 在SPI传输期间，如果控制寄存器或数据寄存器被写入，标记冲突
         end else begin
             if(i_read_status_reg)
-                q_collision_flag <= 1'b0;
+                q_collision_flag <= 1'b0;// 读取状态寄存器后清除冲突标志
         end
     end
 end
@@ -211,9 +211,9 @@ end
 always @(posedge clk) begin
     if(w_sample_spi_data) begin
         if(w_dword) begin
-            q_spi_miso_shr <= {i_miso, q_spi_miso_shr[7:1]};
+            q_spi_miso_shr <= {i_miso, q_spi_miso_shr[7:1]}; // 大端模式：高位先接收
         end else begin
-            q_spi_miso_shr <= {q_spi_miso_shr[6:0], i_miso};
+            q_spi_miso_shr <= {q_spi_miso_shr[6:0], i_miso};// 小端模式：低位先接收
         end
     end   
 end
