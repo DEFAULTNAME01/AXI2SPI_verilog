@@ -197,6 +197,22 @@ task axi_read_data;
                     
                 // q_AXI_wvalid <= 1'b0;
             end
+            begin
+                @(posedge sys_clk);
+                q_AXI_araddr <= target_address;
+                q_AXI_arvalid <= 1'b1;
+                // 等待arready握手
+                while (!w_AXI_arready)
+                    @(posedge sys_clk);
+                    q_AXI_arvalid <= 1'b0;
+
+                // 等待读数据有效
+                while (!w_AXI_rvalid)
+                    @(posedge sys_clk);
+                    q_AXI_rready <= 1'b1;
+                    @(posedge sys_clk);
+                    q_AXI_rready <= 1'b0;
+            end
         join;
         $display("END ");
     end
