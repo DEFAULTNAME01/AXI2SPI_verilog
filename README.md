@@ -72,6 +72,7 @@ vsim 仿真启动 simulation_top
 加载 wave.do，打开波形
 
 
+![image](https://github.com/user-attachments/assets/91768759-2db0-4e04-b959-c6c26a13ea53)
 
 
 源项目：
