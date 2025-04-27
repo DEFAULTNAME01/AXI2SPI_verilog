@@ -5,10 +5,10 @@ proc axi_spi_compile { } {
     set tbDir ../tb/
 
     # Comile the DUT
-    vlog $hdlDir/axi2spi_bridge.v
-    vlog $hdlDir/axi_interface.v
-    vlog $hdlDir/spi_clock_generator.v
-    vlog $hdlDir/spi_controller.v
+    vlog -sv $hdlDir/axi2spi_bridge.v
+    vlog -sv $hdlDir/axi_interface.v
+    vlog -sv $hdlDir/spi_clock_generator.v
+    vlog -sv $hdlDir/spi_controller.v
 
     # Compile the TB
     vlog -sv $tbDir/test_bench.v
@@ -17,7 +17,7 @@ proc axi_spi_compile { } {
 }
 
 proc axi_spi_sim { } {
-    vsim simulation_top -novopt
+    vsim -voptargs=+acc simulation_top
 }
 
 proc axi_spi_wave { } {
@@ -32,8 +32,8 @@ proc axi_spi_run { } {
     vcd add -r *
     
     # run 10000ns
-    run 100us
-    
+    #run 100us
+    run 1ms  ;# 仿真1毫秒，1000微秒，够用了
     #################################################
     ### VCD File Control - Dump all VCD variables ###
     #################################################
