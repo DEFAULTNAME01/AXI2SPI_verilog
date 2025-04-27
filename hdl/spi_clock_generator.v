@@ -40,7 +40,8 @@ module spi_clock_generator(
     reg [6:0] q_spi_sclk_cntr;
 	wire w_sclk_internal;
 	wire [1:0]w_clk_select;
-	reg q_sclk_internal_d1;     //alwaysbe reg, d1->eggyel kesleltetett
+	reg q_sclk_internal_d1;     // 必须使用寄存器，d1表示延迟了一个时钟周期的信号
+
 	wire w_sclk_rising_edge_internal;
 	wire w_sclk_falling_edge_internal;
 	wire w_sample_spi_data_internal;
@@ -62,7 +63,8 @@ module spi_clock_generator(
 							 (w_clk_select==1) ? q_spi_sclk_cntr[3] :
 							 (w_clk_select==2) ? q_spi_sclk_cntr[5] :
 							 (w_clk_select==3) ? q_spi_sclk_cntr[6] :
-							  0; // soha nem jut ide
+							 default: w_sclk_internal = 1'b0;
+
 							  
 	assign o_sclk = w_sclk_internal;	
 	
@@ -75,18 +77,15 @@ module spi_clock_generator(
 		end
 	end
 	
-	//felfuto el
-	assign w_sclk_rising_edge_internal = (w_sclk_internal > q_sclk_internal_d1) ? 1:
-										 0;												//ha nagyobb az aktualis, mint az elozo ->felfuto
+	// 检测 SPI 时钟上升沿
+	assign w_sclk_rising_edge_internal = (w_sclk_internal > q_sclk_internal_d1) ? 1:0;// 当前时钟大于上一个时钟，表示有上升沿											
 										 
 	assign o_sclk_rising_edge = w_sclk_rising_edge_internal;
 	
-	//lefuto el
-	assign w_sclk_falling_edge_internal = (w_sclk_internal < q_sclk_internal_d1) ? 1:
-										 0;												//ha kisebb ->lefuto
-
+	// 检测 SPI 时钟下降沿
+	assign w_sclk_falling_edge_internal = (w_sclk_internal < q_sclk_internal_d1) ? 1:0;// 当前时钟小于上一个时钟，表示有下降沿
 	assign o_sclk_falling_edge = w_sclk_falling_edge_internal;
-	
+	// 组合 CPOL 和 CPHA，用于选择采样/建立数据的时机
 	assign w_sample_setup_select={i_cpol,i_cpha};
 	
 	//o_sample_spi_data
@@ -107,7 +106,7 @@ module spi_clock_generator(
 								
 	assign o_setup_spi_data = w_setup_spi_data;
 	
-    // -- TODO --
-    
+    assign o_sclk = i_mstr ? w_sclk_internal : 1'bz; //如果是从机，sclk悬空或跟随外部
+
     
 endmodule
