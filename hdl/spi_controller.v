@@ -125,7 +125,7 @@ assign w_status_reg = {q_irq_flag, q_collision_flag, 6'b0};
 always @(posedge clk) begin
     if(w_reset)
         q_controll_reg <= '0;
-    if(i_wr_controll_reg) begin
+     else if(i_wr_controll_reg) begin
         q_controll_reg <= i_data_to_registers;
     end
     
@@ -153,6 +153,7 @@ always @(posedge clk) begin
 end
  
 
+assign o_mosi = w_active_spi_transaction ? (w_dword ? q_data_reg[0] : q_data_reg[7]) : 1'bz;//没有数据传输时MOSI悬空
 
 ///////////////////////////////////////////////////////////////////////////
 // SPI controller blocks:
@@ -191,7 +192,7 @@ end
  
 assign o_IRQ = q_irq_flag;
  
- //collision flag
+// 冲突标志位
 always @(posedge clk) begin
     if(w_reset) begin
         q_collision_flag <= 1'b0;
@@ -206,7 +207,7 @@ always @(posedge clk) begin
     end
 end
  
- //miso shr
+// MISO移位寄存器
 always @(posedge clk) begin
     if(w_sample_spi_data) begin
         if(w_dword) begin
@@ -216,8 +217,8 @@ always @(posedge clk) begin
         end
     end   
 end
-
+// MOSI输出数据
 assign o_mosi = w_dword ? (q_data_reg[0]) : q_data_reg[7];
- 
+ // 根据大端小端设置，选择q_data_reg最低位或最高位输出到MOSI
  
 endmodule
