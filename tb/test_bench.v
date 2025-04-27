@@ -228,47 +228,49 @@ task axi_write_data;
     input [31:0] target_address;
     begin
         fork 
-        
+            // 写地址通道
             begin
-                $display("axi_write_data:: ADDR_WRITE. q_AXI_awaddr, target_address %h  , w_AXI_awready, q_AXI_awvalid  ", target_address);
+                $display("axi_write_data:: ADDR_WRITE. q_AXI_awaddr, target_address %h  , w_AXI_awready, q_AXI_awvalid", target_address);
                 
-                
-                @(posedge sys_clk)
+                @(posedge sys_clk);
                 q_AXI_awaddr <= target_address;
                 q_AXI_awvalid <= 1'b1;
-                if(w_AXI_awready !== 1'b1) begin: wait_for_ready_ADW
+                if(w_AXI_awready !== 1'b1) begin: wait_for_ready_AW
                     forever @(posedge sys_clk) begin
                         if(w_AXI_awready == 1'b1)
-                            disable wait_for_ready_ADW;
+                            disable wait_for_ready_AW;
                     end
                 end
-                    
                 q_AXI_awvalid <= 1'b0;
             end
+
+            // 写数据通道
             begin
-                $display("axi_write_data:: WRITE_DATA. qq_AXI_wdata, data_to_write %h  , w_AXI_wready, q_AXI_wvalid  ", data_to_write);
+                $display("axi_write_data:: WRITE_DATA. q_AXI_wdata, data_to_write %h, w_AXI_wready, q_AXI_wvalid", data_to_write);
                 
-                @(posedge sys_clk)
+                @(posedge sys_clk);
                 q_AXI_wdata <= data_to_write;
+                q_AXI_wstrb <= 4'b1111;  // ✅ 这里加上全字节写使能
                 q_AXI_wvalid <= 1'b1;
-                if(w_AXI_wready !== 1'b1) begin: wait_for_ready_WD
+                if(w_AXI_wready !== 1'b1) begin: wait_for_ready_W
                     forever @(posedge sys_clk) begin
                         if(w_AXI_wready == 1'b1)
-                            disable wait_for_ready_WD;
+                            disable wait_for_ready_W;
                     end
                 end
-                    
                 q_AXI_wvalid <= 1'b0;
+                q_AXI_wstrb <= 4'b0000;  // ✅ 可选，写完恢复默认（防止仿真warning）
             end
-        join;
-       // 写完以后处理bready-bvalid握手
+        join
+
+        // 写完成后处理B通道的应答握手
         @(posedge sys_clk);
         q_AXI_bready <= 1'b1;
         wait(w_AXI_bvalid == 1'b1);
         @(posedge sys_clk);
         q_AXI_bready <= 1'b0;
         
-        $display("END ");
+        $display("axi_write_data:: END ");
     end
 endtask
 
