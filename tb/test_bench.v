@@ -367,8 +367,13 @@ task axi_monitor_read;
     
         $display("axi_monitor_read:: ENTER");
         fork 
-            forever @ (w_AXI_rvalid) begin
-                q_AXI_rready <= w_AXI_rvalid;
+            forever begin
+                @(posedge sys_clk);
+                if (w_AXI_rvalid) begin
+                q_AXI_rready <= 1'b1;
+                end else begin
+                q_AXI_rready <= 1'b0;
+                end
             end
         
             forever @ (posedge sys_clk) begin: wait_for_valid
