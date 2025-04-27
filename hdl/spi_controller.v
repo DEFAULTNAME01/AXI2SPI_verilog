@@ -125,7 +125,7 @@ assign w_status_reg = {q_irq_flag, q_collision_flag, 6'b0};
 always @(posedge clk) begin
     if(w_reset)
         q_controll_reg <= '0;
-    if(i_wr_controll_reg) begin
+     else if(i_wr_controll_reg) begin
         q_controll_reg <= i_data_to_registers;
     end
     
@@ -153,6 +153,7 @@ always @(posedge clk) begin
 end
  
 
+assign o_mosi = w_active_spi_transaction ? (w_dword ? q_data_reg[0] : q_data_reg[7]) : 1'bz;//没有数据传输时MOSI悬空
 
 ///////////////////////////////////////////////////////////////////////////
 // SPI controller blocks:
@@ -177,47 +178,47 @@ end
 assign w_active_spi_transaction = q_spi_bit_cntr <8;
 
 
- //interrupt flag
+// interrupt flag
 always @(posedge clk) begin
-    if (w_reset) 
+    if (w_reset) begin
         q_irq_flag <= 1'b0;
-    else if(q_spi_bit_cntr == 7 && w_sample_spi_data) begin
+    end else if (i_read_status_reg) begin
+        q_irq_flag <= 1'b0;
+    end else if (q_spi_bit_cntr == 7 && w_sample_spi_data) begin
         q_irq_flag <= 1'b1;
-    end else begin
-        if(i_read_status_reg)
-            q_irq_flag <= 1'b0;
     end
 end
+
  
 assign o_IRQ = q_irq_flag;
  
- //collision flag
+// 冲突标志位
 always @(posedge clk) begin
     if(w_reset) begin
         q_collision_flag <= 1'b0;
     end else begin
         if(w_active_spi_transaction) begin
             if(i_wr_controll_reg | i_wr_data_reg)
-                q_collision_flag <= 1'b1;
+                q_collision_flag <= 1'b1;// 在SPI传输期间，如果控制寄存器或数据寄存器被写入，标记冲突
         end else begin
             if(i_read_status_reg)
-                q_collision_flag <= 1'b0;
+                q_collision_flag <= 1'b0;// 读取状态寄存器后清除冲突标志
         end
     end
 end
  
- //miso shr
+// MISO移位寄存器
 always @(posedge clk) begin
     if(w_sample_spi_data) begin
         if(w_dword) begin
-            q_spi_miso_shr <= {i_miso, q_spi_miso_shr[7:1]};
+            q_spi_miso_shr <= {i_miso, q_spi_miso_shr[7:1]}; // 大端模式：高位先接收
         end else begin
-            q_spi_miso_shr <= {q_spi_miso_shr[6:0], i_miso};
+            q_spi_miso_shr <= {q_spi_miso_shr[6:0], i_miso};// 小端模式：低位先接收
         end
     end   
 end
-
+// MOSI输出数据
 assign o_mosi = w_dword ? (q_data_reg[0]) : q_data_reg[7];
- 
+ // 根据大端小端设置，选择q_data_reg最低位或最高位输出到MOSI
  
 endmodule
